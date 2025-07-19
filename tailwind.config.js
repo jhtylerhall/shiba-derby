@@ -1,13 +1,13 @@
 /** @type {import('tailwindcss').Config} */
-// eslint-disable-next-line
 module.exports = {
-  content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./App.{js,jsx,ts,tsx}",
+    "./app/**/*.{js,jsx,ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  presets: [require("nativewind/preset")], // <-- THIS IS REQUIRED
   theme: {
-    extend: {
-      colors: {
-        bread: "#F4A261",
-      },
-    },
+    extend: {},
   },
   plugins: [],
 };
