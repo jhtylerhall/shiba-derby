@@ -1,4 +1,4 @@
-import { FUR_COLORS, PERSONALITIES } from "@/constants/dog";
+import { FUR_COLORS, PERSONALITIES, SHIBA_NAMES } from "@/constants/dog";
 import { Dog, DogStats, FurColor, Personality } from "@/types/dog";
 
 function seededRandom(seed: string, range: number): number {
@@ -27,10 +27,10 @@ export function generateDog(seed: string, generation = 1): Dog {
     FUR_COLORS[seededRandom(seed + "fur", FUR_COLORS.length)];
   const personality: Personality =
     PERSONALITIES[seededRandom(seed + "personality", PERSONALITIES.length)];
-
+  const name = SHIBA_NAMES[seededRandom(seed + "name", SHIBA_NAMES.length)];
   return {
     id: `dog-${seed}`,
-    name: `Shiba-${seed.slice(0, 4)}`,
+    name,
     seed,
     generation,
     stats,
