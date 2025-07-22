@@ -1,26 +1,28 @@
-import { FUR_COLORS, PERSONALITIES } from "@/constants/dog";
+// types/dog.ts
 
-export type FurColor = (typeof FUR_COLORS)[number];
-export type Personality = (typeof PERSONALITIES)[number];
+export type FurColor = "red" | "black" | "tan" | "cream" | "white";
+export type Personality =
+  | "loyal"
+  | "playful"
+  | "lazy"
+  | "proud"
+  | "chaotic"
+  | "competitive";
 
-export type DogStats = {
-  speed: number;
-  stamina: number;
-  acceleration: number;
-  obedience: number;
-  cleverness: number;
-};
-
-export type DogTraits = {
-  furColor: FurColor;
-  personality: Personality;
-};
-
-export type Dog = {
+export interface Dog {
   id: string;
   name: string;
-  seed: string;
-  stats: DogStats;
-  traits: DogTraits;
-  generation: number;
-};
+  traits: {
+    furColor: FurColor;
+    personality: Personality;
+    accessories?: string[]; // ["blue collar", "racing goggles"]
+  };
+  stats: {
+    speed: number;
+    stamina: number;
+    acceleration: number;
+    obedience: number;
+    cleverness: number;
+  };
+  spritePrompt: string;
+}

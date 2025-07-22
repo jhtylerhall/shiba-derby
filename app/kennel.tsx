@@ -1,3 +1,4 @@
+import { AnimatedDogSprite } from "@/components/dog/AnimatedDogSprite";
 import { AnimatedShiba } from "@/components/dog/AnimatedShiba";
 import { generateDog } from "@/lib/dogGenerator";
 import { useState } from "react";
@@ -26,13 +27,18 @@ export default function KennelScreen() {
           No dogs in your kennel yet. Tap "Add Dog" to get started!
         </Text>
       )}
-
+      <AnimatedDogSprite
+        spriteSheet={require("@/assets/dogs/ff955119-5385-404f-9dd5-3392ed72ee3c_PinkBow.png")}
+        frameCount={4}
+        frameRate={4} // 4 frames per second
+        frameWidth={32}
+        frameHeight={32}
+      />
       {dogs.map((dog, i) => (
         <View
           key={dog.id}
           className="flex-row items-center p-4 mb-4 bg-orange-50 rounded-2xl shadow"
         >
-          {/* AnimatedShiba avatar in idle mode */}
           <View
             style={{
               width: 56,
@@ -45,10 +51,9 @@ export default function KennelScreen() {
             <AnimatedShiba
               furColor={dog.traits.furColor}
               personality={dog.traits.personality}
-              x={0}
-              y={0}
               mode="idle"
               speedStat={dog.stats.speed}
+              size={56}
             />
           </View>
           <View className="flex-1">
@@ -64,6 +69,9 @@ export default function KennelScreen() {
             </Text>
             <Text className="text-xs text-gray-600">
               Clever: {dog.stats.cleverness}
+            </Text>
+            <Text selectable className="text-xs text-gray-400 mt-2">
+              {dog.spritePrompt}
             </Text>
           </View>
         </View>

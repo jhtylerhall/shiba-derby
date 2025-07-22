@@ -1,42 +1,60 @@
-import { FUR_COLORS, PERSONALITIES, SHIBA_NAMES } from "@/constants/dog";
-import { Dog, DogStats, FurColor, Personality } from "@/types/dog";
+// lib/dogGenerator.ts
 
-function seededRandom(seed: string, range: number): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const rand = (Math.sin(hash) + 1) / 2;
-  return Math.floor(rand * range);
-}
+import { Dog, FurColor, Personality } from "@/types/dog";
+import { nanoid } from "nanoid";
+import { buildSpritePrompt } from "./buildSpritePrompt";
 
-function generateStat(seed: string, modifier: string): number {
-  return seededRandom(seed + modifier + Math.random().toString(), 10) + 1;
-}
+// Optionally, random accessories/personality generators here...
 
-export function generateDog(seed: string, generation = 1): Dog {
-  const stats: DogStats = {
-    speed: generateStat(seed, "speed"),
-    stamina: generateStat(seed, "stamina"),
-    acceleration: generateStat(seed, "accel"),
-    obedience: generateStat(seed, "obed"),
-    cleverness: generateStat(seed, "clever"),
-  };
+export function generateDog(seed: string): Dog {
+  // Replace with your RNG or use the seed for determinism
+  const furColors: FurColor[] = ["red", "black", "tan", "cream", "white"];
+  const personalities: Personality[] = [
+    "loyal",
+    "playful",
+    "lazy",
+    "proud",
+    "chaotic",
+    "competitive",
+  ];
+  // Pick at random or use seeded RNG
+  const furColor = furColors[Math.floor(Math.random() * furColors.length)];
+  const personality =
+    personalities[Math.floor(Math.random() * personalities.length)];
 
-  const furColor: FurColor =
-    FUR_COLORS[seededRandom(seed + "fur", FUR_COLORS.length)];
-  const personality: Personality =
-    PERSONALITIES[seededRandom(seed + "personality", PERSONALITIES.length)];
-  const name = SHIBA_NAMES[seededRandom(seed + "name", SHIBA_NAMES.length)];
+  // Optionally random accessories:
+  const allAccessories = ["blue collar", "racing goggles", "pink bow", "cape"];
+  const accessories =
+    Math.random() < 0.5
+      ? [allAccessories[Math.floor(Math.random() * allAccessories.length)]]
+      : [];
+
+  // Optional: select animation type
+  const animationType = "idle animation";
+
+  // Build the sprite prompt
+  const spritePrompt = buildSpritePrompt(
+    furColor,
+    personality,
+    accessories,
+    animationType
+  );
+
   return {
-    id: `dog-${seed}`,
-    name,
-    seed,
-    generation,
-    stats,
+    id: nanoid(),
+    name: "Shiba", // Replace with your name generator
     traits: {
       furColor,
       personality,
+      accessories,
     },
+    stats: {
+      speed: Math.ceil(Math.random() * 10),
+      stamina: Math.ceil(Math.random() * 10),
+      acceleration: Math.ceil(Math.random() * 10),
+      obedience: Math.ceil(Math.random() * 10),
+      cleverness: Math.ceil(Math.random() * 10),
+    },
+    spritePrompt,
   };
 }

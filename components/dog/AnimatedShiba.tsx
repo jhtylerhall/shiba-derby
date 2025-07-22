@@ -7,9 +7,8 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { Ellipse, G, Path, Rect, Text as SvgText } from "react-native-svg";
+import { Ellipse, G, Path, Rect, Svg, Text as SvgText } from "react-native-svg";
 
-// Color mapping
 const FUR_COLOR_MAP: Record<FurColor, string> = {
   red: "#E18A3C",
   black: "#262626",
@@ -27,22 +26,19 @@ const PERSONALITY_EMOJI: Record<Personality, string> = {
   competitive: "💨",
 };
 
-// Animation config by mode
 function getAnimConfig(
   mode: "race" | "idle",
   personality: Personality,
   speedStat = 5
 ) {
   if (mode === "idle") {
-    // Subtle, slow bounce, tail wag, almost no wiggle
     return {
       duration: 1200,
-      bounceHeight: 3,
+      bounceHeight: 2, // CLAMP bounce to a smaller range for kennel
       wiggleAmount: 2,
       tailWag: 1,
     };
   }
-  // Race mode
   const baseDuration =
     personality === "lazy"
       ? 480
@@ -53,10 +49,10 @@ function getAnimConfig(
           : 180;
   const bounceHeight =
     personality === "lazy"
-      ? 4
+      ? 3
       : personality === "chaotic"
-        ? 16
-        : 8 + Math.floor(speedStat / 2);
+        ? 10
+        : 6 + Math.floor(speedStat / 2);
   const wiggleAmount =
     personality === "playful" || personality === "chaotic" ? 10 : 4;
   return {
@@ -67,7 +63,6 @@ function getAnimConfig(
   };
 }
 
-// SVG path for a simple tail (right side, will wag)
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 const AnimatedTail = Animated.createAnimatedComponent(Path);
 const AnimatedGroup = Animated.createAnimatedComponent(G);
@@ -75,26 +70,20 @@ const AnimatedGroup = Animated.createAnimatedComponent(G);
 const AnimatedShibaComponent = ({
   furColor,
   personality,
-  x,
-  y,
-  mode = "idle", // "idle" or "race"
+  mode = "idle",
   speedStat = 5,
+  size = 56,
 }: {
   furColor: FurColor;
   personality: Personality;
-  x: number;
-  y: number;
   mode?: "idle" | "race";
   speedStat?: number;
+  size?: number;
 }) => {
-  // Animate bounce
   const bounce = useSharedValue(0);
-  // Animate wiggle
   const wiggle = useSharedValue(0);
-  // Animate tail wag
   const tailWag = useSharedValue(0);
 
-  // Get animation config for this dog/mode
   const {
     duration,
     bounceHeight,
@@ -103,41 +92,17 @@ const AnimatedShibaComponent = ({
   } = getAnimConfig(mode, personality, speedStat);
 
   useEffect(() => {
-    if (mode === "race") {
-      bounce.value = withRepeat(
-        withTiming(-bounceHeight, { duration }),
-        -1,
-        true
-      );
-      wiggle.value = withRepeat(
-        withTiming(wiggleAmount, { duration }),
-        -1,
-        true
-      );
-      tailWag.value = withRepeat(
-        withTiming(tailWagFactor, { duration: duration / 2 }),
-        -1,
-        true
-      );
-    } else {
-      // Idle mode: subtle, slow, never fully still
-      bounce.value = withRepeat(
-        withTiming(-bounceHeight, { duration }),
-        -1,
-        true
-      );
-      wiggle.value = withRepeat(
-        withTiming(wiggleAmount, { duration }),
-        -1,
-        true
-      );
-      tailWag.value = withRepeat(
-        withTiming(tailWagFactor, { duration: duration }),
-        -1,
-        true
-      );
-    }
-    // No animation on unmount
+    bounce.value = withRepeat(
+      withTiming(-bounceHeight, { duration }),
+      -1,
+      true
+    );
+    wiggle.value = withRepeat(withTiming(wiggleAmount, { duration }), -1, true);
+    tailWag.value = withRepeat(
+      withTiming(tailWagFactor, { duration: duration }),
+      -1,
+      true
+    );
     return () => {
       bounce.value = 0;
       wiggle.value = 0;
@@ -145,45 +110,50 @@ const AnimatedShibaComponent = ({
     };
   }, [mode, duration, bounceHeight, wiggleAmount, tailWagFactor]);
 
-  // Animated props for position and wiggle
+  // ANIMATION: body is always within viewBox
   const animatedGroupProps = useAnimatedProps(() => {
-    // Wiggle: oscillate between -wiggleAmount and +wiggleAmount degrees
-    const rotate = `${interpolate(wiggle.value, [-wiggleAmount, wiggleAmount], [-wiggleAmount, wiggleAmount])}deg`;
+    const rotate = `${interpolate(
+      wiggle.value,
+      [-wiggleAmount, wiggleAmount],
+      [-wiggleAmount, wiggleAmount]
+    )}deg`;
     return {
       transform: [
-        { translateX: x + 20 },
-        { translateY: y + 15 },
+        { translateX: size / 2 },
+        { translateY: size / 2 },
         { rotate },
-        { translateX: -20 },
-        { translateY: -15 },
+        { translateX: -size / 2 },
+        { translateY: -size / 2 },
       ],
     };
   });
 
-  // Animated bounce
+  // NEW: use a small, always-positive y (center the body)
   const animatedRectProps = useAnimatedProps(() => ({
-    y: y + bounce.value,
+    y: size / 2 - 15 + bounce.value, // center body vertically
   }));
 
-  // Animated tail wag
+  // Tail stays in bottom right
   const animatedTailProps = useAnimatedProps(() => ({
-    d: `M40,42 Q${52 + tailWag.value * 3},${34 - tailWag.value * 4} ${44 + tailWag.value * 2},24`,
+    d: `M${size - 12},${size - 18} Q${size - 2 + tailWag.value * 3},${size - 22 - tailWag.value * 4} ${
+      size - 8 + tailWag.value * 2
+    },${size - 34}`,
   }));
 
   return (
-    <>
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       {/* Drop Shadow */}
       <Ellipse
-        cx={x + 20}
-        cy={y + 35}
-        rx={20}
-        ry={7}
+        cx={size / 2}
+        cy={size - 10}
+        rx={size / 2 - 8}
+        ry={size / 8}
         fill="#222"
         opacity={0.14}
       />
       <AnimatedGroup animatedProps={animatedGroupProps}>
         <AnimatedRect
-          x={x}
+          x={size / 2 - 20}
           animatedProps={animatedRectProps}
           width={40}
           height={30}
@@ -199,8 +169,8 @@ const AnimatedShibaComponent = ({
           fill="none"
         />
         <SvgText
-          x={x + 20}
-          y={y + 18}
+          x={size / 2}
+          y={size / 2 + 6}
           fontSize={18}
           fill="#222"
           textAnchor="middle"
@@ -208,7 +178,7 @@ const AnimatedShibaComponent = ({
           {PERSONALITY_EMOJI[personality]}
         </SvgText>
       </AnimatedGroup>
-    </>
+    </Svg>
   );
 };
 
